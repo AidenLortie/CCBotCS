@@ -6,6 +6,30 @@
         <LangVersion>latestmajor</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.1.89" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Configuration.KeyPerFile" Version="10.0.14" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+      <PackageReference Include="NetCord" Version="1.0.0-beta.29" />
+      <PackageReference Include="NetCord.Hosting" Version="1.0.0-beta.29" />
+      <PackageReference Include="NetCord.Hosting.Services" Version="1.0.0-beta.29" />
+      <PackageReference Include="NetCord.Services" Version="1.0.0-beta.29" />
+      <PackageReference Include="Npgsql.DependencyInjection" Version="10.0.3" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    </ItemGroup>
 
 </Project>

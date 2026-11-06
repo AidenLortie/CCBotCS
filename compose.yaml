@@ -1,0 +1,21 @@
+﻿services:
+  ccbot:
+    image: ccbot
+    network_mode: host
+    build:
+      context: .
+      dockerfile: CCBot/Dockerfile
+    secrets:
+      - source: discord_token
+        target: Discord__Token
+      - source: connection_string
+        target: ConnectionStrings__Default
+  
+
+secrets:
+  discord_token:
+    file: ./secrets/discord_token.txt
+  connection_string:
+    file: ./secrets/connection_string.txt
+  
+

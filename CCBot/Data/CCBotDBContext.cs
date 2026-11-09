@@ -14,6 +14,8 @@ public class CCBotDbContext(DbContextOptions<CCBotDbContext> options) : DbContex
 {
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<Reminder> Reminders => Set<Reminder>();
+    public DbSet<Event> Events => Set<Event>();
+    public DbSet<Group> Groups => Set<Group>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
         => builder.Properties<ulong>().HaveConversion<long>(); // Discord IDs stored as bigint

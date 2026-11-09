@@ -32,58 +32,43 @@ public class ReminderService(
     private async Task SendDueRemindersAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var now = DateTimeOffset.UtcNow;
         var due = await db.Reminders
-            .Where(r => !r.Occurred && r.RemindAt <= now) // matches IX_Reminders_Occurred_RemindAt
-            .Include(r => r.Event)
-            .ThenInclude(e => e.Group)
+            .Where(r => r.RemindAt <= DateTimeOffset.UtcNow)
             .ToListAsync(ct);
 
         foreach (var reminder in due)
         {
-            var ev = reminder.Event;
-            var users = ev.Group.Users;
-            var mentions = string.Join(' ', users.Select(u => $"<@{u}>"));
-
-            // A reminder can fire ahead of the event, so only say "now" once it has actually started.
-            var when = ev.OccursAt <= now.AddMinutes(1)
-                ? "is happening now!"
-                : $"starts <t:{ev.OccursAt.ToUnixTimeSeconds()}:R>.";
-
             var message = new MessageProperties
             {
-                Content = $"⏰ {mentions} **{ev.Name}** {when}",
-                // Only ping the group's members, even if the name contains @everyone or role mentions
+                Content = $"⏰ <@{reminder.UserId}> **{reminder.Name}** is happening now!",
+                // Only ping the user, even if the name contains @everyone or role mentions
                 AllowedMentions = new AllowedMentionsProperties
                 {
                     Everyone = false,
                     AllowedRoles = [],
-                    AllowedUsers = users,
+                    AllowedUsers = [reminder.UserId],
                 },
             };
 
             try
             {
-                await client.Rest.SendMessageAsync(ev.ChannelId, message, cancellationToken: ct);
+                await client.Rest.SendMessageAsync(reminder.ChannelId, message, cancellationToken: ct);
             }
             catch (RestException)
             {
-                // Can't post in that channel (no permission, bot not in server, etc.), so DM each member
-                foreach (var userId in users)
+                // Can't post in that channel (no permission, bot not in server, etc.), so try a DM
+                try
                 {
-                    try
-                    {
-                        var dm = await client.Rest.GetDMChannelAsync(userId, cancellationToken: ct);
-                        await dm.SendMessageAsync(message, cancellationToken: ct);
-                    }
-                    catch (RestException ex)
-                    {
-                        logger.LogWarning(ex, "Couldn't deliver reminder {Id} to user {UserId}", reminder.Id, userId);
-                    }
+                    var dm = await client.Rest.GetDMChannelAsync(reminder.UserId, cancellationToken: ct);
+                    await dm.SendMessageAsync(message, cancellationToken: ct);
+                }
+                catch (RestException ex)
+                {
+                    logger.LogWarning(ex, "Couldn't deliver reminder {Id}", reminder.Id);
                 }
             }
 
-            reminder.Occurred = true; // mark even on failure so it doesn't retry forever
+            db.Reminders.Remove(reminder); // remove even on failure so it doesn't retry forever
         }
 
         await db.SaveChangesAsync(ct);

@@ -22,7 +22,7 @@ namespace CCBot.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CCBot.Data.Entities.Reminder", b =>
+            modelBuilder.Entity("CCBot.Data.Entities.Event", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,17 +33,76 @@ namespace CCBot.Migrations
                     b.Property<long>("ChannelId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("OccursAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.PrimitiveCollection<decimal[]>("Users")
+                        .IsRequired()
+                        .HasColumnType("numeric(20,0)[]");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Groups");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Reminder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Occurred")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("RemindAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("Occurred", "RemindAt");
 
                     b.ToTable("Reminders");
                 });
@@ -63,6 +122,38 @@ namespace CCBot.Migrations
                     b.HasKey("GuildId", "Name");
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Event", b =>
+                {
+                    b.HasOne("CCBot.Data.Entities.Group", "Group")
+                        .WithMany("Events")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Reminder", b =>
+                {
+                    b.HasOne("CCBot.Data.Entities.Event", "Event")
+                        .WithMany("Reminders")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Event", b =>
+                {
+                    b.Navigation("Reminders");
+                });
+
+            modelBuilder.Entity("CCBot.Data.Entities.Group", b =>
+                {
+                    b.Navigation("Events");
                 });
 #pragma warning restore 612, 618
         }

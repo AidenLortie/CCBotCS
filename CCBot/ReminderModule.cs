@@ -34,7 +34,7 @@ public partial class ReminderModule(IDbContextFactory<CCBotDbContext> dbFactory)
         [SlashCommandParameter(Description = "Day of the month", MinValue = 1, MaxValue = 31)] int day,
         [SlashCommandParameter(Description = "24-hour time, e.g. 1800, 0030, 1245", MinValue = 0, MaxValue = 2359)] int time,
         [SlashCommandParameter(Description = "Year (defaults to this year)", MinValue = 2000, MaxValue = 9999)] int? year = null,
-        [SlashCommandParameter(Description = "Time zone, e.g. America/New_York (defaults to UTC)")] string timezone = "UTC")
+        [SlashCommandParameter(Description = "Time zone, e.g. America/New_York or UTC (defaults to America/Toronto)")] string timezone = "America/Toronto")
     {
         // "0030" arrives as 30, so integer math still gives 00:30.
         int hour = time / 100, minute = time % 100;
